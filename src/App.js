@@ -1,56 +1,36 @@
-import React,{useEffect, useState} from 'react';
-import './App.css';
-import Anime from './anime'
+import React from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import { ApolloProvider } from "@apollo/react-hooks";
+import { Layout } from "antd";
+import cubejs from "@cubejs-client/core";
+import { CubeProvider } from "@cubejs-client/react";
+import client from "./graphql/client";
+import Header from "./components/Header";
+const API_URL = "http://localhost:4000";
+const CUBEJS_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1NzI2MTIzMDksImV4cCI6MTU3MjY5ODcwOX0.Q793cR2omkpH_6PFf3LpqxDgtI8Fz3aP8moO394L1c8";
+const cubejsApi = cubejs(CUBEJS_TOKEN, {
+  apiUrl: `${API_URL}/cubejs-api/v1`
+});
 
-function App() {
-  const[animes ,setanime]= useState([]);
-  const[search ,setsearch]= useState("");
-  const[query ,setquery]= useState("naruto");
-  useEffect(()=>{
-    getsearchanime();
-    console.log("api call")
-  },[query]);
-  
-  const getsearchanime = async () => {
-    const search_api = `http://api.jikan.moe/v3/search/anime?q=${query}&page=1`;
-    var proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-    const response = await fetch(proxyUrl+search_api)
-    const data =await response.json();
-    console.log(data.results)
-    setanime(data.results)
-    /*
-    fetch()
-    .then()*/
-  }
-  const updatesearch = e =>{
-    setsearch(e.target.value)
-    console.log(search)
-  }
-  const getsearch = e =>{
-    e.preventDefault();
-    setquery(search);
-    setsearch("")
-    console.log(search)
-  }
-  
-  return (
-    <div className="App">
-      <form onSubmit={getsearch} className="form-class">
-        <input className="form-search"  type="text" value={search} onChange={updatesearch}></input>
-        <button className="form-button" type="submit">search</button>
-      </form>
-      <div className="animes">
-      {animes.map(anime => (
-        <Anime
-        title={anime.title}
-        info={anime.synopsis} 
-        image={anime.image_url}
-        key={anime.title}
-        />
-      ))}
-      </div>
-    </div>
-  );
-}
+const AppLayout = ({ children }) => (
+  <Layout
+    style={{
+      height: "100%"
+    }}
+  >
+    <Header />
+    <Layout.Content>{children}</Layout.Content>
+  </Layout>
+);
+
+const App = ({ children }) => (
+  <CubeProvider cubejsApi={cubejsApi}>
+    <ApolloProvider client={client}>
+      <AppLayout>{children}</AppLayout>
+    </ApolloProvider>
+  </CubeProvider>
+);
 
 export default App;
