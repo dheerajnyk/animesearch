@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { withRouter ,Link  } from "react-router-dom";
+import { withRouter ,Link ,Redirect  } from "react-router-dom";
+import {BrowserRouter as Router, Switch, Route} from "react-router-dom";
 import { Layout, Menu, Icon } from 'antd';
 import ".././main.css";
 import { ApolloProvider } from "@apollo/react-hooks";
 import cubejs from "@cubejs-client/core";
 import { CubeProvider } from "@cubejs-client/react";
 import client from ".././graphql/client";
+import App from ".././App"
+
 //import Header from "./components/Header";
 const API_URL = "http://localhost:4000";
 const CUBEJS_TOKEN =
@@ -45,9 +48,24 @@ class LoginBox extends React.Component{
   constructor(props){
     super(props);
   }
+  state={
+    redirrefirectToReferrer : false
+  }
   submitlogin(e){
+    Auth.authenticate(()=>{
+      this.setState(()=>({
+        redirrefirectToReferrer : true
+      })
+      )      
+    }
+    )
   }
   render(){
+    const { redirrefirectToReferrer} = this.state
+    if (redirrefirectToReferrer === true){
+      return(
+        <Redirect to = "/"/>    )
+    }else{
     return(
     <div className="inner-container">
       <div className="header">
@@ -62,9 +80,11 @@ class LoginBox extends React.Component{
           <label htmlFor="password">Password</label>
           <input className="login-input" type="text" name="password" placeholder="password"></input>
         </div>
-        <button type="button" className="login-btn" onClick={this.submitlogin.bind(this)}>SUBMIT</button>
+        <button type="button" className="login-btn" onClick={this.submitlogin.bind(this)}>
+          <Link to="/App">SUBMIT</Link>
+        </button>
       </div>
-    </div>);
+    </div>);}
   }
 }
 
@@ -87,5 +107,25 @@ const App1 = ({ children }) => (
     </CubeProvider>
   );
 
+const Auth = {
+ isAuthenticated: true,
+ authenticate(cb){
+   this.isAuthenticated = true
+   setTimeout(cb, 100)
+ },
+ signout(cb){
+   this.isAuthenticated = false
+   setTimeout(cb,100)
+ }
+}
 
+export const PrivateRoute=({component:Component,...rest})=>(
+<Route {...rest} render={(props)=>(
+  
+  Auth.isAuthenticated === true 
+  ? <Component {...props} />
+  : <Redirect to = "/"></Redirect>
+)}
+/>
+)
 export default withRouter(App1);
